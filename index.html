@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPOA 2.0 Project Logger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --help-text: #475569;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: var(--card-bg);
+            max-width: 650px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex: 1 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            padding: 30px 20px;
+            color: white;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+        .header p { font-size: 0.95rem; opacity: 0.9; }
+        
+        .progress-bar {
+            display: flex;
+            background: #eff6ff;
+            height: 6px;
+            width: 100%;
+        }
+        .progress-fill {
+            background: var(--primary);
+            width: 25%;
+            transition: width 0.4s ease;
+        }
+
+        .step-container { padding: 35px; display: none; animation: fadeIn 0.4s ease; }
+        .step-container.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .step-title { font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .step-desc { font-size: 0.95rem; color: var(--help-text); margin-bottom: 25px; line-height: 1.6; }
+        
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
+        .form-group .help-text { font-size: 0.85rem; color: var(--help-text); margin-bottom: 8px; display: block; line-height: 1.4; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .grid-buttons { display: grid; gap: 12px; }
+        .btn-choice {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+        .btn-choice:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        .btn-choice span { display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; font-weight: 400; line-height: 1.4; }
+        
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 35px; }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+        .btn-prev { background: #e2e8f0; color: #475569; }
+        .btn-prev:hover { background: #cbd5e1; }
+        .btn-next { background: var(--primary); color: white; }
+        .btn-next:hover { background: var(--primary-hover); }
+        
+        .success-state { text-align: center; padding: 40px 20px; }
+        .success-icon { width: 64px; height: 64px; background: #d1fae5; color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px auto; }
+        
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-next.loading { position: relative; color: transparent; pointer-events: none; }
+        .btn-next.loading .spinner { display: block; position: absolute; top: 50%; left: 50%; margin-top: -10px; margin-left: -10px; }
+        
+        footer.site-footer {
+            background: transparent;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 12px 20px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>NPOA CTI-CFF 2.0</h1>
+        <p>Project Contribution Wizard</p>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Step 1: Basic Info -->
+    <div class="step-container active" id="step1">
+        <div class="step-title">1. Project Information</div>
+        <div class="step-desc">Welcome! This toolkit is designed to easily log your contributions to the national tracker. Please provide the basic details of your project below.</div>
+        
+        <div class="form-group">
+            <label>Implementing Agency / Lead</label>
+            <span class="help-text">Enter the name of your organization, NGO, university, or government department.</span>
+            <input type="text" id="agency" placeholder="e.g. WWF-Malaysia, Sabah Parks">
+        </div>
+        <div class="form-group">
+            <label>Specific Project / Sub-Activity Name</label>
+            <span class="help-text">Enter the specific name of your project or initiative.</span>
+            <input type="text" id="projectName" placeholder="e.g. Expedition to Mantahani">
+        </div>
+        <div class="form-group">
+            <label>Data Entry Name</label>
+            <span class="help-text">Your name for contact and record-keeping.</span>
+            <input type="text" id="dataEntryName" placeholder="e.g. Wee Hin Boo">
+        </div>
+        <div class="form-group">
+            <label>Data Entry Email</label>
+            <span class="help-text">Your email address (we will contact you if needed).</span>
+            <input type="email" id="dataEntryEmail" placeholder="e.g. takheru@gmail.com">
+        </div>
+        <div class="form-group">
+            <label>Contact Number (Optional)</label>
+            <span class="help-text">Phone or WhatsApp number (optional).</span>
+            <input type="tel" id="dataEntryPhone" placeholder="e.g. +60 12-345 6789">
+        </div>
+        <div class="form-group">
+            <label>Project Status</label>
+            <span class="help-text">Is this project currently ongoing, already completed, or in the planning phase?</span>
+            <select id="status">
+                <option value="Planned">Planned</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Completed">Completed</option>
+            </select>
+        </div>
+        <div class="nav-buttons" style="justify-content: flex-end;">
+            <button class="btn btn-next" onclick="nextStep(2)">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Target Selection -->
+    <div class="step-container" id="step2">
+        <div class="step-title">2. Select Target</div>
+        <div class="step-desc">Select the overarching national goal that your project best aligns with. You will select specific activities on the next screens.</div>
+        <div class="grid-buttons" id="targetGrid"></div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(1)">Back</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Action Selection -->
+    <div class="step-container" id="step3">
+        <div class="step-title">3. Select Action</div>
+        <div class="step-desc">Based on the Target you selected, please choose the specific NPOA Action your project fulfills.</div>
+        <div class="grid-buttons" id="actionGrid"></div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(2)">Back</button>
+        </div>
+    </div>
+
+    <!-- Step 4: Activity Selection -->
+    <div class="step-container" id="step4">
+        <div class="step-title">4. Select Activity</div>
+        <div class="step-desc">Click the most relevant Activity below. If your project does not match 100%, select the closest related activity.</div>
+        <div class="grid-buttons" id="activityGrid"></div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(3)">Back</button>
+        </div>
+    </div>
+
+    <!-- Step 5: Metrics -->
+    <div class="step-container" id="step5">
+        <div class="step-title">5. Achievements & Metrics</div>
+        <div class="step-desc">This final section captures the impact of your project. Please specify what unit you are measuring and the numbers achieved.</div>
+        
+        <div class="form-group">
+            <label>Measurement Index/Unit</label>
+            <span class="help-text">What are you counting? (e.g., "Number of Trainings", "Hectares Protected", "Reports Produced")</span>
+            <input type="text" id="metricUnit" placeholder="e.g. Trainings, People, Hectares, Reports">
+        </div>
+        <div class="form-group">
+            <label>Measurement Value (Numeric)</label>
+            <span class="help-text">Enter the total number achieved for the unit you specified above.</span>
+            <input type="number" id="metricValue" placeholder="e.g. 10">
+        </div>
+        <div class="form-group">
+            <label>Current % Completion (Optional)</label>
+            <span class="help-text">If applicable, what is the estimated percentage of completion for this project?</span>
+            <input type="text" id="completion" placeholder="e.g. 80%">
+        </div>
+        <div class="form-group">
+            <label>Qualitative Update / Narrative (Optional)</label>
+            <span class="help-text">Provide any additional details or context that numbers cannot capture.</span>
+            <textarea id="narrative" rows="3" placeholder="Provide any additional details or context..."></textarea>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(4)">Back</button>
+            <button class="btn btn-next" id="submitBtn" onclick="submitData()">
+                Submit Data
+                <div class="spinner"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 6: Success -->
+    <div class="step-container" id="step6">
+        <div class="success-state">
+            <div class="success-icon">✓</div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 10px;">Submitted Successfully!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Your project data has been synced directly to the central NPOA 2.0 tracker.</p>
+            <button class="btn btn-next" onclick="location.reload()">Log Another Project</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const hierarchy = {"A1": {"name": "Coral Reefs, Mangroves, and Seagrass Beds", "actions": {"Action 1": {"name": "Identify, and increase % coverage of Marine Protected Areas, LMMAs and OECMs in Sula-Sulawesi Seascape to achieve % coverage of resilient coral reefs, mangroves and seagrass beds.", "activities": ["[Activity 1] Increase LMMA and OECM recognition", "[Activity 2] Blueprint MyMPA implementation", "[Activity 3] Gazette Darvel Bay Park", "[Activity 4] Gazette Klias Peninsula Ramsar site", "[Activity 5] TWG and Regional Collaboration"]}, "Action 2": {"name": "Effective management plan or action plan that effectively reduces stressors both from natural and human-induced impacts on coral reefs, mangroves, and seagrass beds.", "activities": ["[Activity 6] Protect 10 key mangrove areas in Sabah", "[Activity 7] Implement Sabah Mangrove Action Plan", "[Activity 8] Implement Sabah Biodiversity Strategy", "[Activity 9] Nature-Centric Port Infrastructure"]}, "Action 3": {"name": "Management effectiveness is demonstrated in MPAs with robust management plans that align with management effectiveness frameworks, such as the IUCN Green List and CTMPAS levels 3 and 4.", "activities": ["[Activity 10] Develop and revise MPA management plans", "[Activity 11] Advance TMP CTMPAS Status", "[Activity 12] Adopt METT-4 in Sabah Marine Parks"]}, "Action 4": {"name": "A national comprehensive guideline to identify critical habitats and establish effective management strategies for coral reefs, mangroves, and seagrass beds within and beyond MPAs.", "activities": ["[Activity 13] Establish national/state OECM frameworks", "[Activity 14] Legal frameworks for MyIMCA sites", "[Activity 15] Semporna Marine Spatial Plan (MSP)"]}, "Action 5": {"name": "Strategies funding to support program and activities for protection of coral reefs, seagrass beds and mangroves within and beyond MPAs.", "activities": ["[Activity 16] Community-based Coral Adoption Program", "[Activity 17] Sabah Blue Economy Framework"]}, "Action 6": {"name": "Strategies multi-agencies/organization, civil-societies, and communities partnership to effectively reduce stressors from both natural and human- induced impacts on key marine habitats and species.", "activities": ["[Activity 18] Annual Coral Reef Health Monitoring", "[Activity 19] Underwater Cleanups and COT Control", "[Activity 20] Semporna Fish-Bomb-Free Initiative", "[Activity 21] Develop SaBIIS Marine Database", "[Activity 22] Darvel Bay Park Management Partnership", "[Activity 23] Annual ICCD Coastal Clean-ups", "[Activity 24] Implement Oceans 5 (Sabah)", "[Activity 25] Semporna Community ecotourism", "[Activity 26] Area-Based Conservation Peer Learning"]}, "Action 7": {"name": "Implement active marine ecosystem restoration through collaborative efforts with local communities, NGOs, and private companies.", "activities": ["[Activity 27] Selakan Island Coral Restoration", "[Activity 28] Mangrove Rehabilitation with ISME", "[Activity 29] Semporna Youth Reef Rehabilitation", "[Activity 30] Project PULIH Coral Rehabilitation"]}, "Action 8": {"name": "Comprehensive research and assessment within and beyond MPAs protected to achieve % coverage of resilient coral reefs, mangroves and seagrass beds.", "activities": ["[Activity 31] Blue Accounting Geospatial Framework", "[Activity 32] Baseline for Proposed Tun Juhar Park", "[Activity 33] Baseline for Proposed Ligitan Island Park", "[Activity 34] Tropical Forest Gen-Resources Management", "[Activity 35] Dugong and Seagrass Surveys in Sibu", "[Activity 36] MERMAID Coral Reef Monitoring", "[Activity 37] Sarawak Coral Reef Research Trade Quotas", "[Activity 38] Sarawak Coral Reef EFT/SCAP Research", "[Activity 39] TMP Development Risk Assessment Tool", "[Activity 40] Map Seagrass Distribution in Sabah", "[Activity 41] Johor Seagrass Mapping and CEPA", "[Activity 42] Establish Semporna Knowledge Hub"]}}}, "A2": {"name": "Threatened Species", "actions": {"Action 1": {"name": "Comprehensive threat mitigation measures address the survival challenges of threatened species, effectively reducing threats and enhancing the conservation status of priority threatened species.", "activities": ["[Activity 1] Threat-mitigation for priority species", "[Activity 2] Identify and prioritize species threats", "[Activity 3] Langkawi Boating Code-of-Conduct", "[Activity 4] Peninsular Cetacean Bycatch Mitigation", "[Activity 5] Monitor critical habitats with communities", "[Activity 6] Sarawak Marine Turtle SCAP 2023-2027", "[Activity 7] Maintain TIHPA Transboundary Program", "[Activity 8] Trial Seasonal Closure in Shark Hotspots"]}, "Action 2": {"name": "Effective waste management and pollution control measures address environmental threats, enhancing ecosystem health and improving the conservation status of priority threatened species.", "activities": ["[Activity 9] Oil Spill Contingency Planning", "[Activity 10] National Marine Litter Policy Implementation", "[Activity 11] Nationwide and Local Cleanup Initiatives", "[Activity 12] Community-based Waste Systems in Sabah", "[Activity 13] Outreach Strategy for Marine Pollution"]}, "Action 3": {"name": "Robust policies, regulatory frameworks, and transboundary collaborations are implemented to tackle regional conservation challenges, decreasing threats and improving the status of priority threatened species across the Coral Triangle.", "activities": ["[Activity 14] Regional Conservation Collaborations", "[Activity 15] Adopt International Policy Frameworks", "[Activity 16] Revise Mammal Protection under Fisheries Act"]}, "Action 4": {"name": "Targeted capacity-building initiatives and public engagement empower communities and enforcement agencies to effectively address conservation challenges, reduce threats, and enhance the conservation status of priority threatened species.", "activities": ["[Activity 17] Turtle Excluder Devices (TED) Capacity", "[Activity 18] Combat Illegal Wildlife Trade (IWT) Capacity", "[Activity 19] Regional Shark/Ray Taxonomy Training", "[Activity 20] IWT Traceability Workshops", "[Activity 21] Marine Mammal Stranding Response"]}, "Action 5": {"name": "Systematic assessment and ongoing monitoring provide critical data to inform conservation strategies, reduce threats, and improve the conservation status of priority threatened species.", "activities": ["[Activity 22] CITES Data Collection and Review", "[Activity 23] IUCN Red List Population Monitoring", "[Activity 24] Develop Shark and Ray Traceability", "[Activity 25] MY-CITES Electronic Permit System", "[Activity 26] KK Species-Level Shark/Ray Landing Data", "[Activity 27] Field Data on High-Demand Species", "[Activity 28] Entry/Exit Port Import/Export Monitoring", "[Activity 29] Research Migratory Corridors", "[Activity 30] Biodiversity Conservation Awareness Study", "[Activity 31] Marine Megafauna Research", "[Activity 32] Trawl Fishery Bycatch Observation"]}}}, "A3": {"name": "Healthy and Productive Fisheries", "actions": {"Action 1": {"name": "Effective management actions are in place to improve the health of coastal and marine ecosystems, priority species and fisheries in the Coral Triangle region.", "activities": ["[Activity 1] EAFM Marine Awareness Program", "[Activity 2] FIP on Reef Fishes in Marudu Bay (TMP)", "[Activity 3] FIP on Yellowfin Tuna at Mabul Island", "[Activity 4] Small-Scale Fisheries Project (SSFP) Banggi", "[Activity 5] SSFP Larapan Island Semporna", "[Activity 6] Tun Mustapha Park Fisheries Master Plan", "[Activity 7] Longtail Tuna FIP in Tok Bali Kelantan", "[Activity 8] SSFP in Rajang-Belawai-Paloh Sarawak", "[Activity 9] SSFP in Kemaman Terengganu", "[Activity 10] Establish Community Marine Sanctuaries", "[Activity 11] Daily Tuna Catch Records Mabul", "[Activity 12] Community Patrols in Larapan Island", "[Activity 13] Penaeus monodon Refugia in Miri"]}, "Action 2": {"name": "Effective enforcement strategies and plan to reduce threats and IUU fishing to marine habitats and threatened species in the priority seascapes.", "activities": ["[Activity 14] MCS under Fisheries Act 1985 in Sabah", "[Activity 15] Joint Enforcement Operations against IUU"]}, "Action 3": {"name": "Effective study, monitoring strategies to reduce threats and IUU fishing to marine habitat in the priority seascape.", "activities": ["[Activity 16] Blast Fishing Monitoring and Detection", "[Activity 17] Instant Reporting System for Fish Bombing", "[Activity 18] Commercial Vessel Tracking (IIVMS)"]}, "Action 4": {"name": "Fisheries habitat enhancement to increase fish biomass and CPUE for commercially important species.", "activities": ["[Activity 19] FAD and Artificial Reef Deployment"]}}}, "B1": {"name": "Food Security and Coastal Livelihoods", "actions": {"Action 1": {"name": "Community based programs to reduce hunger, poverty and increase food security are effectively pursued to improve coastal livelihood.", "activities": ["[Activity 1] Implement Agrofood Policy (DAN 2.0)", "[Activity 2] Climate Change Socio-ecological Report", "[Activity 3] Sabah Livelihood Transformation Programs", "[Activity 4] Ecotourism Capacity for Marine Parks", "[Activity 5] Develop Alternative Marine Aquaculture"]}, "Action 2": {"name": "Assessment of resources, needs and opportunities of sustainable livelihoods in the Priority Seascapes.", "activities": ["[Activity 6] COASTFISH Inter-Agency Assessment", "[Activity 7] Citizen Science Fish Landing CPUE", "[Activity 8] SSFP Village Scoping Studies", "[Activity 9] COASTFISH Livelihood Assessments", "[Activity 10] Weather Monitoring and Extreme Warnings", "[Activity 11] Offshore Sand Resource Study (Phase 3B)"]}, "Action 3": {"name": "Exchange knowledges, lessons learned documents to promote and share knowledge, technology, and best practices are supported/implemented for the COASTFISH.", "activities": ["[Activity 12] COASTFISH Seminars and Exchanges"]}, "Action 4": {"name": "National efforts to enhance awareness and strengthen outreach activity.", "activities": ["[Activity 13] LMMA Peer Learning Exchanges"]}, "Action 5": {"name": "Capacity building and alternative livelihood for sustainable coastal fisheries and poverty reductions to achieve food security and improve coastal livelihood.", "activities": ["[Activity 14] Project Sea, Science and Schools", "[Activity 15] Livelihood Support in TMP & Semporna"]}}}, "B2": {"name": "Gender Equality and Social Inclusion (GESI)", "actions": {"Action 1": {"name": "Integrating GESI into CTI TWG activities ensures that marine conservation efforts are inclusive, equitable, and responsive to the diverse needs of all stakeholders, enhancing both environmental sustainability and community resilience across the Coral Triangle.", "activities": ["[Activity 1] Embed GESI in CTI TWG Meetings", "[Activity 2] Practical Tools for Gender/Social Data"]}, "Action 2": {"name": "Assessing the impact of CEPA initiatives on enhancing GESI policy understanding among key CTI-CFF stakeholders.", "activities": ["[Activity 3] Evaluate CEPA GESI Policy Impact"]}, "Action 3": {"name": "Leverage Communication, Education, and Public Awareness (CEPA) strategies to raise awareness and foster a deeper understanding of Gender Equality and Social Inclusion (GESI) principles among key stakeholders in the CTI-CFF.", "activities": ["[Activity 4] CT Day CEPA GESI Activities"]}}}, "B3": {"name": "Climate-Resilient Communities", "actions": {"Action 1": {"name": "Availability of best practices report /guideline to prove that the coastal communities are resilient and adapt to climate change-related risks.", "activities": ["[Activity 1] Formulate National Coastal Policy", "[Activity 2] Document Community Adaptation Practices", "[Activity 3] Produce and Submit BUR to UNFCCC", "[Activity 4] Fisheries Sector Climate Action Plan", "[Activity 5] Enforce Sabah Climate and Carbon Enactment", "[Activity 6] Integrate Nature-Based Solutions (NbS)"]}, "Action 2": {"name": "Comprehensive vulnerability assessments are carried out to identify vulnerability levels of the coastal environment and small-islands ecosystems.", "activities": ["[Activity 7] Formulate Sabah Shoreline Management Plan", "[Activity 8] Kota Belud Sustainable Livelihoods Plan", "[Activity 9] Malaysia Sea Level Rise Monitoring (MySLR)", "[Activity 10] Model Climate Stress on Seagrass", "[Activity 11] Establish Climate Adaptation Knowledge Hub", "[Activity 12] Equatorial Marine Climate Research", "[Activity 13] Storm Surge Nearshore Risk Assessment", "[Activity 14] Deploy Oceanographic Sensors", "[Activity 15] Sabah Coastal Vulnerability Assessment", "[Activity 16] TMP Fishery Climate Resilience Assessment", "[Activity 17] MPA Island Coastal Vulnerability Study", "[Activity 18] Mabul Community Climate Impact Assessment", "[Activity 19] Support Balambangan and Mabul Resilience"]}, "Action 3": {"name": "Relevant awareness, training and outreach program designed for stakeholders to strengthen levels of adaptive capacity and resilient to climate change.", "activities": ["[Activity 20] Mainstream GESI into Climate Adaptation", "[Activity 21] Blue Carbon (Seagrass/Mangrove) CEPA", "[Activity 22] Mangrove Restoration Nursery Training", "[Activity 23] Climate Impact Tech Capacity Building", "[Activity 24] Annual Ocean Celebration Month", "[Activity 25] Climate Research Dissemination Roadshow"]}, "Action 4": {"name": "Increase marine habitats coverage to mitigate climate change through habitats rehabilitation and restoration.", "activities": ["[Activity 26] Sabah Coastal Mangrove Rehabilitation", "[Activity 27] Darau Wetland Firefly/Mangrove Project"]}}}};
+    
+    // Replace this URL with your deployed Google Apps Script Web App URL!
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz5U813WDkQ4xgsNkf9BVwgWPajfkFwNBIKGhJxjeBBfbxhd4pSZWloMLZSXiDQ_5Sc/exec'; 
+
+    let formData = {
+        agency: '',
+        projectName: '',
+        status: '',
+        targetId: '',
+        targetName: '',
+        actionId: '',
+        actionName: '',
+        activityStr: '',
+        dataEntryName: '',
+        dataEntryEmail: '',
+        dataEntryPhone: '',
+        metricUnit: '',
+        metricValue: '',
+        completion: '',
+        narrative: ''
+    };
+
+    function updateProgress(step) {
+        document.getElementById('progressBar').style.width = ((step - 1) / 5) * 100 + '%';
+    }
+
+    function nextStep(step) {
+        if (step === 2) {
+            if (!document.getElementById('agency').value || !document.getElementById('projectName').value || !document.getElementById('dataEntryName').value || !document.getElementById('dataEntryEmail').value) {
+                alert('Please fill in the required fields (Agency, Project, Name, Email).'); return;
+            }
+            formData.agency = document.getElementById('agency').value;
+            formData.projectName = document.getElementById('projectName').value;
+            formData.status = document.getElementById('status').value;
+            formData.dataEntryName = document.getElementById('dataEntryName').value;
+            formData.dataEntryEmail = document.getElementById('dataEntryEmail').value;
+            formData.dataEntryPhone = document.getElementById('dataEntryPhone').value;
+            renderTargets();
+        }
+        
+        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+        document.getElementById('step' + step).classList.add('active');
+        updateProgress(step);
+    }
+
+    function prevStep(step) {
+        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+        document.getElementById('step' + step).classList.add('active');
+        updateProgress(step);
+    }
+
+    function renderTargets() {
+        const grid = document.getElementById('targetGrid');
+        grid.innerHTML = '';
+        Object.keys(hierarchy).forEach(t_id => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-choice';
+            btn.innerHTML = `Target ${t_id}<span>${hierarchy[t_id].name}</span>`;
+            btn.onclick = () => selectTarget(t_id);
+            grid.appendChild(btn);
+        });
+    }
+
+    function selectTarget(t_id) {
+        formData.targetId = t_id;
+        formData.targetName = hierarchy[t_id].name;
+        renderActions(t_id);
+        nextStep(3);
+    }
+
+    function renderActions(t_id) {
+        const grid = document.getElementById('actionGrid');
+        grid.innerHTML = '';
+        const actions = hierarchy[t_id].actions;
+        Object.keys(actions).forEach(a_id => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-choice';
+            btn.innerHTML = `${a_id}<span>${actions[a_id].name}</span>`;
+            btn.onclick = () => selectAction(a_id);
+            grid.appendChild(btn);
+        });
+    }
+
+    function selectAction(a_id) {
+        formData.actionId = a_id;
+        formData.actionName = hierarchy[formData.targetId].actions[a_id].name;
+        renderActivities(formData.targetId, a_id);
+        nextStep(4);
+    }
+
+    function renderActivities(t_id, a_id) {
+        const grid = document.getElementById('activityGrid');
+        grid.innerHTML = '';
+        const activities = hierarchy[t_id].actions[a_id].activities;
+        activities.forEach(act => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-choice';
+            btn.innerHTML = act;
+            btn.onclick = () => selectActivity(act);
+            grid.appendChild(btn);
+        });
+    }
+
+    function selectActivity(act) {
+        formData.activityStr = act;
+        nextStep(5);
+    }
+
+    function submitData() {
+        if (!document.getElementById('metricUnit').value || !document.getElementById('metricValue').value) {
+            alert('Please enter your measurement unit and value.'); return;
+        }
+        
+        formData.metricUnit = document.getElementById('metricUnit').value;
+        formData.metricValue = document.getElementById('metricValue').value;
+        formData.completion = document.getElementById('completion').value;
+        formData.narrative = document.getElementById('narrative').value;
+
+        const btn = document.getElementById('submitBtn');
+        btn.classList.add('loading');
+        
+        const payload = JSON.stringify(formData);
+
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: payload
+        }).then(() => {
+            btn.classList.remove('loading');
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('step6').classList.add('active');
+            updateProgress(6);
+        }).catch(err => {
+            alert('An error occurred. Make sure you replaced the API_URL in index.html with your actual deployed Web App URL.');
+            btn.classList.remove('loading');
+        });
+    }
+
+</script>
+
+<footer class="site-footer">
+    <div>Ts. Dr. Wee Hin Boo</div>
+    <div><a href="mailto:takheru@gmail.com" style="color:inherit;text-decoration:underline;">takheru@gmail.com</a></div>
+    <div style="margin-top:6px;">☕ You can buy me a coffee if you like it ☕</div>
+</footer>
+
+</body>
+</html>
