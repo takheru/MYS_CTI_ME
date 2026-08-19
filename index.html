@@ -145,43 +145,53 @@
 <body>
 
 <div class="container">
-    <div class="header">
+    <header class="header">
         <h1>NPOA CTI-CFF 2.0</h1>
         <p>Project Contribution Wizard</p>
-    </div>
+    </header>
     <div class="progress-bar">
         <div class="progress-fill" id="progressBar"></div>
     </div>
 
+    <main>
     <!-- Step 1: Basic Info -->
     <div class="step-container active" id="step1">
-        <div class="step-title">1. Project Information</div>
-        <div class="step-desc">Welcome! This toolkit is designed to easily log your contributions to the national tracker. Please provide the basic details of your project below.</div>
+        <div class="step-title">1. Basic Information</div>
+        <div class="step-desc">Welcome! This form is designed for non-scientists and project leads to easily log their contributions to the Malaysia CTI-CFF NPOA 2.0. Simply select the target your project aligns with, choose the most relevant activity, and input your achievements. Your data will automatically be aligned with the national tracker.</div>
         
-        <div class="form-group">
-            <label>Implementing Agency / Lead</label>
-            <span class="help-text">Enter the name of your organization, NGO, university, or government department.</span>
-            <input type="text" id="agency" placeholder="e.g. WWF-Malaysia, Sabah Parks">
-        </div>
-        <div class="form-group">
-            <label>Specific Project / Sub-Activity Name</label>
-            <span class="help-text">Enter the specific name of your project or initiative.</span>
-            <input type="text" id="projectName" placeholder="e.g. Expedition to Mantahani">
-        </div>
         <div class="form-group">
             <label>Data Entry Name</label>
             <span class="help-text">Your name for contact and record-keeping.</span>
-            <input type="text" id="dataEntryName" placeholder="e.g. Ali Ahmad Azmi">
+            <input type="text" id="dataEntryName" placeholder="e.g. Ali Ahmad Azmin">
         </div>
         <div class="form-group">
             <label>Data Entry Email</label>
             <span class="help-text">Your email address (we will contact you if needed).</span>
-            <input type="email" id="dataEntryEmail" placeholder="e.g. AAA@flykite.com">
+            <input type="email" id="dataEntryEmail" placeholder="e.g. aaa@flykite.com">
         </div>
         <div class="form-group">
             <label>Contact Number (Optional)</label>
             <span class="help-text">Phone or WhatsApp number (optional).</span>
             <input type="tel" id="dataEntryPhone" placeholder="e.g. +60 12-345 6789">
+        </div>
+        <div class="form-group">
+            <label>Implementing Agency / Lead</label>
+            <span class="help-text">Enter the name of your organization, NGO, university, or government department.</span>
+            <input type="text" id="agency" placeholder="e.g. WWF-Malaysia, Sabah Parks">
+        </div>
+        <div class="nav-buttons" style="justify-content: flex-end;">
+            <button class="btn btn-next" onclick="nextStep(2)">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Project Info -->
+    <div class="step-container" id="step2">
+        <div class="step-title">2. Project Information</div>
+        <div class="step-desc">In this section, please provide the general details of who is leading the project and what the project is called.</div>
+        <div class="form-group">
+            <label>Specific Project / Sub-Activity Name</label>
+            <span class="help-text">Enter the specific name of your project or initiative.</span>
+            <input type="text" id="projectName" placeholder="e.g. Expedition to Mantahani">
         </div>
         <div class="form-group">
             <label>Project Status</label>
@@ -193,43 +203,44 @@
             </select>
         </div>
         <div class="nav-buttons" style="justify-content: flex-end;">
-            <button class="btn btn-next" onclick="nextStep(2)">Continue</button>
+            <button class="btn btn-prev" onclick="prevStep(1)">Back</button>
+            <button class="btn btn-next" onclick="nextStep(3)">Continue</button>
         </div>
     </div>
 
-    <!-- Step 2: Target Selection -->
-    <div class="step-container" id="step2">
-        <div class="step-title">2. Select Target</div>
+    <!-- Step 3: Target Selection -->
+    <div class="step-container" id="step3">
+        <div class="step-title">3. Select Target</div>
         <div class="step-desc">Select the overarching national goal that your project best aligns with. You will select specific activities on the next screens.</div>
         <div class="grid-buttons" id="targetGrid"></div>
-        <div class="nav-buttons">
-            <button class="btn btn-prev" onclick="prevStep(1)">Back</button>
-        </div>
-    </div>
-
-    <!-- Step 3: Action Selection -->
-    <div class="step-container" id="step3">
-        <div class="step-title">3. Select Action</div>
-        <div class="step-desc">Based on the Target you selected, please choose the specific NPOA Action your project fulfills.</div>
-        <div class="grid-buttons" id="actionGrid"></div>
         <div class="nav-buttons">
             <button class="btn btn-prev" onclick="prevStep(2)">Back</button>
         </div>
     </div>
 
-    <!-- Step 4: Activity Selection -->
+    <!-- Step 4: Action Selection -->
     <div class="step-container" id="step4">
-        <div class="step-title">4. Select Activity</div>
-        <div class="step-desc">Click the most relevant Activity below. If your project does not match 100%, select the closest related activity.</div>
-        <div class="grid-buttons" id="activityGrid"></div>
+        <div class="step-title">4. Select Action</div>
+        <div class="step-desc">Based on the Target you selected, please choose the specific NPOA Action your project fulfills.</div>
+        <div class="grid-buttons" id="actionGrid"></div>
         <div class="nav-buttons">
             <button class="btn btn-prev" onclick="prevStep(3)">Back</button>
         </div>
     </div>
 
-    <!-- Step 5: Metrics -->
+    <!-- Step 5: Activity Selection -->
     <div class="step-container" id="step5">
-        <div class="step-title">5. Achievements & Metrics</div>
+        <div class="step-title">5. Select Activity</div>
+        <div class="step-desc">Click the most relevant Activity below. If your project does not match 100%, select the closest related activity.</div>
+        <div class="grid-buttons" id="activityGrid"></div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(4)">Back</button>
+        </div>
+    </div>
+
+    <!-- Step 6: Metrics -->
+    <div class="step-container" id="step6">
+        <div class="step-title">6. Achievements & Metrics</div>
         <div class="step-desc">This final section captures the impact of your project. Please specify what unit you are measuring and the numbers achieved.</div>
         
         <div class="form-group">
@@ -253,7 +264,7 @@
             <textarea id="narrative" rows="3" placeholder="Provide any additional details or context..."></textarea>
         </div>
         <div class="nav-buttons">
-            <button class="btn btn-prev" onclick="prevStep(4)">Back</button>
+            <button class="btn btn-prev" onclick="prevStep(5)">Back</button>
             <button class="btn btn-next" id="submitBtn" onclick="submitData()">
                 Submit Data
                 <div class="spinner"></div>
@@ -261,8 +272,8 @@
         </div>
     </div>
 
-    <!-- Step 6: Success -->
-    <div class="step-container" id="step6">
+    <!-- Step 7: Success -->
+    <div class="step-container" id="step7">
         <div class="success-state">
             <div class="success-icon">✓</div>
             <h2 style="font-size: 1.5rem; margin-bottom: 10px;">Submitted Successfully!</h2>
@@ -270,6 +281,7 @@
             <button class="btn btn-next" onclick="location.reload()">Log Another Project</button>
         </div>
     </div>
+    </main>
 
 </div>
 
@@ -298,13 +310,18 @@
     };
 
     function updateProgress(step) {
-        document.getElementById('progressBar').style.width = ((step - 1) / 5) * 100 + '%';
+        document.getElementById('progressBar').style.width = ((step - 1) / 6) * 100 + '%';
     }
 
     function nextStep(step) {
         if (step === 2) {
-            if (!document.getElementById('agency').value || !document.getElementById('projectName').value || !document.getElementById('dataEntryName').value || !document.getElementById('dataEntryEmail').value) {
-                alert('Please fill in the required fields (Agency, Project, Name, Email).'); return;
+            if (!document.getElementById('agency').value || !document.getElementById('dataEntryName').value || !document.getElementById('dataEntryEmail').value) {
+                alert('Please fill in the required fields (Agency, Name, Email).'); return;
+            }
+        }
+        if (step === 3) {
+            if (!document.getElementById('projectName').value) {
+                alert('Please enter a project name.'); return;
             }
             formData.agency = document.getElementById('agency').value;
             formData.projectName = document.getElementById('projectName').value;
@@ -342,7 +359,7 @@
         formData.targetId = t_id;
         formData.targetName = hierarchy[t_id].name;
         renderActions(t_id);
-        nextStep(3);
+        nextStep(4);
     }
 
     function renderActions(t_id) {
@@ -362,7 +379,7 @@
         formData.actionId = a_id;
         formData.actionName = hierarchy[formData.targetId].actions[a_id].name;
         renderActivities(formData.targetId, a_id);
-        nextStep(4);
+        nextStep(5);
     }
 
     function renderActivities(t_id, a_id) {
@@ -372,7 +389,7 @@
         activities.forEach(act => {
             const btn = document.createElement('button');
             btn.className = 'btn-choice';
-            btn.innerHTML = act;
+            btn.innerHTML = act.replace(/^\[([^\]]+)\]/, '$1');
             btn.onclick = () => selectActivity(act);
             grid.appendChild(btn);
         });
@@ -380,7 +397,7 @@
 
     function selectActivity(act) {
         formData.activityStr = act;
-        nextStep(5);
+        nextStep(6);
     }
 
     function submitData() {
@@ -408,8 +425,8 @@
         }).then(() => {
             btn.classList.remove('loading');
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-            document.getElementById('step6').classList.add('active');
-            updateProgress(6);
+            document.getElementById('step7').classList.add('active');
+            updateProgress(7);
         }).catch(err => {
             alert('An error occurred. Make sure you replaced the API_URL in index.html with your actual deployed Web App URL.');
             btn.classList.remove('loading');
